@@ -1,6 +1,7 @@
 package cz.muni.fi.crocs.rcard.client;
 
-import apdu4j.TerminalManager;
+import apdu4j.pcsc.PCSCReader;
+import apdu4j.pcsc.TerminalManager;
 import com.licel.jcardsim.io.CAD;
 import com.licel.jcardsim.io.JavaxSmartCardInterface;
 import com.licel.jcardsim.smartcardio.CardSimulator;
@@ -177,7 +178,9 @@ public class CardManager {
         TerminalFactory tf = TerminalManager.getTerminalFactory();
         String reader = System.getenv("GP_READER");
         if (reader != null) {
-            Optional<CardTerminal> t = TerminalManager.getInstance(tf.terminals()).dwim(reader, System.getenv("GP_READER_IGNORE"), Collections.emptyList());
+            TerminalManager terminalManager = TerminalManager.getDefault();
+            List<PCSCReader> readers = TerminalManager.listPCSC(terminalManager.terminals().list(), null, false);
+            Optional<CardTerminal> t = TerminalManager.getLucky(TerminalManager.dwimify(readers, reader, System.getenv("GP_READER_IGNORE")), terminalManager.terminals());
             if (!t.isPresent()) {
                 throw new RuntimeException("Reader could not be found");
             }
